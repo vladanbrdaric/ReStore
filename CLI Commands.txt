@@ -1,0 +1,64 @@
+# INSTALL EXTENSIONS IN VS CODE
+- C# for Visual Studio Code (powered by OmniSharp)
+- C# Extensions (by JosKreativ)
+- Auto Rename Tag
+- Bracket Pair Colorizer 2
+- Material Icon Theme
+- NuGet Gallery
+- SQLite
+
+# Create solution for our projects.
+dotnet new sln
+
+# Create WebAPI project and give it name of API
+dotnet new webapi -o API
+
+# add webapi project to the solution
+dotnet sln add API
+
+# if you are in cmd type next to open solution in vs code. It will open directory where you are now.
+code .
+
+# run the project (launch) from vs code terminal. make sure you not on solution level but inside project you want to run.
+dotnet run
+
+# It will reload current window and ask you to add ".vscode" directory. press "yes".
+CTRL+SHIFT+P -> reload windows
+
+# I you press something other than "yes"
+CTRL+SHIFT+P -> General Assets for Build and Debug
+
+# If you have issue with launching vs code from terminal.
+CTRL+SHIFT+P -> Install 'code' command in PATH
+
+# To exclude 'bin' and 'obj' directory from projects.
+'File' -> 'Preference' -> Settings -> search for 'exclude' -> add new pattern
+**/bin
+**/obj
+
+# To enable hot reload.
+ dotnet watch run
+
+# To install dotnet-ef package to be able to do EF migration
+dotnet tool install --global dotnet-ef --version 6.0.4
+
+# Check for the the tools that has been installed 
+dotnet tool list -g
+
+# To update installed package to some newer version
+dotnet tool update --global dotnet-ef --version 6.0.4
+
+# To create a EF migration
+dotnet ef migrations add InitialCreate -o Data/Migrations
+
+# This command will look at "Migrations" folder and run Up method in "InitialCreate" class.
+dotnet ef database update
+
+# To delete the database
+dotnet ef database drop
+
+# Get list of available .net templates
+dotnet new -l
+
+# Create .gitignore file for dotnet project
+# dotnet new gitignore
