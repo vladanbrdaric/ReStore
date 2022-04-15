@@ -62,3 +62,30 @@ dotnet new -l
 
 # Create .gitignore file for dotnet project
 # dotnet new gitignore
+
+# To rename "master" branch to "main"
+git branch -M main
+
+----------------------------------------------------------------
+
+REACT JS
+
+# Create reactjs app  i.g. npx create-react-app [app_name]
+npx create-react-app client --template typescript --use-npm
+
+# To build and run reactjs app
+# cd into client
+npm start
+
+# To install Material UI 
+npm install @mui/material @emotion/react @emotion/styled
+
+# Add Roboto font to index.html file
+<link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+/>
+
+# Install SVG Icons
+npm install @mui/icons-material
+
