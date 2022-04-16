@@ -89,3 +89,12 @@ npm install @mui/material @emotion/react @emotion/styled
 # Install SVG Icons
 npm install @mui/icons-material
 
+# Install React rounter
+npm install react-router-dom@5.3.0 @types/react-router-dom@5.3.2
+
+# To be able to switch from component to component without browser refreshing
+npm install history@4.10.1
+
+# To install Axios that will give me posibility to use HTTP client, 
+npm install axios
+
