@@ -8,9 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ProductsController : ControllerBase
+    // OBS: I dont need this 2 lines of code because I inherit from BaseApiController that has 
+    // Those 2 lines of code inside its body.
+    
+    //[ApiController]
+    //[Route("api/[controller]")]
+    public class ProductsController : BaseApiController
     {
         private readonly StoreContext _context;
         public ProductsController(StoreContext context)
@@ -30,7 +33,16 @@ namespace API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProductById(int id)
         {
-            return await _context.Products.FindAsync(id);
+            var product = await _context.Products.FindAsync(id);
+
+            if(product != null)
+            {
+                return product;
+            }
+            else
+            {
+                return NotFound();
+            }
         }
     }
 }

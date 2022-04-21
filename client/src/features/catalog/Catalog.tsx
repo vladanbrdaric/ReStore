@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import agent from "../../app/api/agent";
+import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Product } from "../../app/models/products";
 import ProductList from "./ProductList";
 
@@ -18,12 +20,33 @@ export default function Catalog() {
   // this will allow me to keep list of products in the memory.
     const [products, setProducts] = useState<Product[]>([]);
 
+    /** Variabel for loading component */
+    const [loading, setLoading] = useState(true);
+
+
     useEffect(() => {
+        agent.Catalog.list()
+            /** If products are loaded it will show then immediatelly */
+            .then(products => setProducts(products))
+            /** It will catch error and log it */
+            .catch(error => console.log(error))
+            /** as the last thing it will set loading to false and remove that component from screen. */
+            .finally(() => setLoading(false))
+    }, [])
+
+    if(loading){
+        return <LoadingComponent message="Loading products..."/>
+    }
+
+    /** OLD ONE, Before centralizing requests in agent.ts file. The same efect as function above */
+/*     useEffect(() => {
       fetch('http://localhost:5000/api/products')
         .then(response => response.json())
         .then(data => setProducts(data)) 
         // very important to pass [] as second argument, otherwicse it will be endless loop.
-    }, [])
+    }, []) */
+
+
 
 /*     function addProduct() {
         setProducts(prevState => [...products, {
@@ -39,7 +62,7 @@ export default function Catalog() {
 
         return (
         /** Equvalent as 'Fragment' or 'div' in HTML. You can return ONLY one element */
-        <>
+        <>  
             <ProductList products={products}/>
         </>
         )

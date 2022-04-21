@@ -1,7 +1,9 @@
 import { Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import agent from "../../app/api/agent";
+import NotFoundError from "../../app/errors/NotFoundError";
+import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Product } from "../../app/models/products";
 
 
@@ -21,22 +23,33 @@ export default function ProductDetails(){
 
 
     /** API get request. [id] at the end is a dependency so that we dont get an endless loop. */
+
     useEffect(() => {
-        {/* JavaScript sintax for string interpolation >> `http://localhost/api/products/${id}`  <<*/}
+        agent.Catalog.details(parseInt(id))
+            .then(response => setProduct(response))
+            .catch(error => console.log(error))
+            .finally(() => setLoading(false));
+    }, [])
+
+
+    /** OLD ONE Before adding 'agent.ts' helper file */
+/*     useEffect(() => {
+        { JavaScript sintax for string interpolation >> `http://localhost/api/products/${id}`  <<}
         axios.get(`http://localhost:5000/api/products/${id}`)
             .then(response => setProduct(response.data))
             .catch(error => console.log(error))
             .finally(() => setLoading(false));
-    },[id])
+    },[id]) */
 
 
     /** COUPLE OF CONDITIONS BEFORE I RETURN A PROJECT */
 
     /** Check for loading status (If the component has been initialized) */
-    if (loading) return <h3>Loading...</h3>
+    if (loading) return <LoadingComponent message="Loading product..." />
 
     /** If there is no product return message to user. */
-    if (!product) return <h3>Product not found...</h3>
+/*     if (!product) return <h3>Product not found...</h3> */
+    if (!product) return <NotFoundError />
 
     return(             
         <Grid container spacing={6}> {/** Spacing between items inside grid */}

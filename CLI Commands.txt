@@ -98,3 +98,6 @@ npm install history@4.10.1
 # To install Axios that will give me posibility to use HTTP client, 
 npm install axios
 
+# To install toast notification
+npm install react-toastify
+
