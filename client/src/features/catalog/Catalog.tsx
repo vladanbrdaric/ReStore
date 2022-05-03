@@ -30,7 +30,7 @@ export default function Catalog() {
             .then(products => setProducts(products))
             /** It will catch error and log it */
             .catch(error => console.log(error))
-            /** as the last thing it will set loading to false and remove that component from screen. */
+            /** as the last thing it will set loading to false and remove that component from */
             .finally(() => setLoading(false))
     }, [])
 

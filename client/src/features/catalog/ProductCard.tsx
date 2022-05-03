@@ -1,5 +1,9 @@
+import { LoadingButton } from "@mui/lab";
 import { Avatar, Button, Card, CardActions, CardContent, CardHeader, CardMedia, Typography } from "@mui/material";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import agent from "../../app/api/agent";
+import { useStoreContext } from "../../app/context/StoreContext";
 import { Product } from "../../app/models/products";
 
 interface Prod {
@@ -7,6 +11,31 @@ interface Prod {
 }
 
 export default function ProductCard({product}: Prod){
+    
+    /** Lession 75 */
+    /** From useStoreContext I want to use 'setBasket' method. */
+    const {setBasket} = useStoreContext();
+
+    /** Because this is a API call, I want to use 'loading' */
+    const[loading, setLoading] = useState(false);
+
+    /** Create function to handle addItem */
+    function handleAddItem(productId: number){
+        /** Set loading to true */
+        setLoading(true);
+
+        /** Att to Basket. I don't need to pass in quantity bacause default value is 1. */
+        agent.Basket.addItem(productId)
+            /** I'm catching error but at the moment. 
+             * I'm not doing anything with the basket that is going to come in the response 
+            */
+            /** I'm getting basket back from the API and setting it with useStoreContext to new updated version. */
+            .then(basket => setBasket(basket))
+            .catch(error => console.log(error))
+            /** Set loading to false. */
+            .finally(() => setLoading(false))
+    }
+
     return (
         <Card>
             <CardHeader
@@ -34,23 +63,15 @@ export default function ProductCard({product}: Prod){
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Add to card</Button>
+                {/** This component give me abillity to display a spinner while something is happening. */}
+                <LoadingButton 
+                    loading={loading} 
+                    onClick={() => handleAddItem(product.id)} 
+                    size="small">Add to cart
+                </LoadingButton>
                 {/* JavaScript sintax for string interpolation >> `/catalog/${product.id}`  <<*/}
                 <Button component={Link} to={`/catalog/${product.id}`} size="small">View</Button>
             </CardActions>
         </Card>
     )
 }
-
-
-
-
-
-/*         <ListItem key={product.id}>
-            <ListItemAvatar>
-                <Avatar src={product.pictureUrl} />
-            </ListItemAvatar>
-            <ListItemText>
-                {product.name} - {product.price}
-            </ListItemText>
-        </ListItem> */

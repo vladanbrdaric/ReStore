@@ -51,6 +51,13 @@ dotnet tool update --global dotnet-ef --version 6.0.4
 # To create a EF migration
 dotnet ef migrations add InitialCreate -o Data/Migrations
 
+# If you ever add new property inside 'StoreContext.cs' file, dont forget to run this command to add that table to database.
+# OBS: Make sure all files has been saved.
+dotnet ef migrations add BasketEntityAdded
+
+# To remove the migration
+dotnet ef migrations remove
+
 # This command will look at "Migrations" folder and run Up method in "InitialCreate" class.
 dotnet ef database update
 
@@ -100,4 +107,8 @@ npm install axios
 
 # To install toast notification
 npm install react-toastify
+
+# To install material UI Lab
+npm install @mui/lab
+
 

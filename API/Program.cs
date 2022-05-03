@@ -63,8 +63,9 @@ if (app.Environment.IsDevelopment())
 
 // CORS configuration
 app.UseCors(opt =>
-{
-    opt.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000");
+{   
+    // Without AllowCredentials() I could not pass cookies to and from client on a different domain.
+    opt.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:3000");
 });
 
 

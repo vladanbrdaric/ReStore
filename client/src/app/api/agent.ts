@@ -5,6 +5,9 @@ import { history } from "../..";
 /** Base url to my API */
 axios.defaults.baseURL = "http://localhost:5000/api/";
 
+/** The same thing as on server side. To be able to send cookie back and forth. */
+axios.defaults.withCredentials = true;
+
 /** Create a delay that's going to pause the application in one second before it loads a new component. */
 /** Promise represents an operation that hasn't completed yet. */
 const sleep = () => new Promise(resolve => setTimeout(resolve, 500));
@@ -83,7 +86,7 @@ const requests = {
     get: (url: string) => axios.get(url).then(responseBody), 
     post: (url: string, body: {}) => axios.post(url, body).then(responseBody), 
     update: (url: string, body: {}) => axios.put(url).then(responseBody), 
-    delete: (url: string) => axios.get(url).then(responseBody), 
+    delete: (url: string) => axios.delete(url).then(responseBody), 
 }
 
 /** Here will be centralised all request that has with Catalog component to do. */
@@ -103,11 +106,26 @@ const TestErrors = {
     getValidationError: () => requests.get('buggy/validation-error'),
 }
 
+/** Here will be centralised all request that has with Basket component to do. */
+const Basket = {
+    /** This request will be addressed to the 'GetBasket' Http Get method, and it will return basket of type BasketDto
+     * 'basket' is the name of the API controller. So path will be /api/basket 
+    */
+    get: () => requests.get('basket'),
+
+    /** This http post call takes in two parameters which will build a query string.
+     * It's important to parse an empty object at the end.
+     */
+    addItem: (productId: number, quantity = 1) => requests.post(`basket?productId=${productId}&quantity=${quantity}`, {}),
+    removeItem: (productId: number, quantity: number) => requests.delete(`basket?productId=${productId}&quantity=${quantity}`)
+
+}
 
 /** I think that I making my objects public so I can access them outside the funciion */
 const agent = {
     Catalog,
-    TestErrors
+    TestErrors,
+    Basket
 }
 
 

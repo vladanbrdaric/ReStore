@@ -16,6 +16,8 @@ namespace API.Controllers
     public class ProductsController : BaseApiController
     {
         private readonly StoreContext _context;
+        
+        // Inject "database connection" into this class
         public ProductsController(StoreContext context)
         {
             _context = context;

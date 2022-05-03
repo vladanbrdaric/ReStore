@@ -1,6 +1,6 @@
 import { ThemeProvider } from "@emotion/react";
 import { Container, createTheme, CssBaseline } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import AboutPage from "../../features/about/AboutPage";
@@ -12,8 +12,42 @@ import Header from "./Header";
 import 'react-toastify/dist/ReactToastify.css';
 import ServerError from "../errors/ServerError";
 import NotFoundError from "../errors/NotFoundError";
+import BasketPage from "../../features/basket/BasketPage";
+import { useStoreContext } from "../context/StoreContext";
+import { Basket } from "../models/basket";
+import { getCookie } from "../util/util";
+import agent from "../api/agent";
+import LoadingComponent from "./LoadingComponent";
+import CheckoutPage from "../../features/checkout/CheckoutPage";
 
 function App() {
+  /** I have to specify what I'm interested of from useStoreContext */
+  const {setBasket} = useStoreContext();
+
+  /** I'm getting basket from API which meands there will be some loading. */
+  const [loading, setLoading] = useState(true);
+
+  /** In order to go and get the basket when my application loads, use 'useEffect'. */
+  useEffect(() => {
+    /** make sure 'buyerId' match whatever you call your cookie. */
+    const buyerId = getCookie('buyerId')
+    /** If I have buyerId cookie */
+    if(buyerId){
+
+      /** fetch basket from API */
+      agent.Basket.get()
+        /** set basket using 'context' */  
+        .then(basket => setBasket(basket))
+        .catch(error => console.log(error))
+        .finally(() => setLoading(false));
+    }
+    /** If I dont have buyerId from cookie. (Incognito window) */
+    else{
+      setLoading(false);
+    }
+    /** setBasket is a dependency that I need. */
+  }, [setBasket])
+
   const [darkMode, setDarkMode] = useState(false);
   const paletteType = darkMode ? 'dark' : 'light';
   const theme = createTheme(
@@ -32,6 +66,11 @@ function App() {
     setDarkMode(!darkMode)
   }
 
+  /** Check to see if loading, if so, return loading component. */
+  if(loading){
+    return <LoadingComponent message="Initialising app..."/>
+  }
+
   return (
     <ThemeProvider theme={theme}>
       {/** Toast Container have to be right below ThemeProvider */}
@@ -46,6 +85,8 @@ function App() {
             <Route path="/catalog/:id" component={ProductDetails} />
             <Route path="/about" component={AboutPage} />
             <Route path="/contact" component={ContactPage} />    
+            <Route path="/basket" component={BasketPage} />    
+            <Route path="/checkout" component={CheckoutPage} />    
             {/** Look at agent.tsx file for the 500 server error. */}
             <Route path="/server-error" component={ServerError} />    
             

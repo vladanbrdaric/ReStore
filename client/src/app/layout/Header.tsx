@@ -1,7 +1,8 @@
 import { DarkMode, ShoppingCart } from "@mui/icons-material";
 import { AppBar, Badge, IconButton, List, ListItem, Switch, Toolbar, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
+import { useStoreContext } from "../context/StoreContext";
 
 interface Props{
     darkMode: boolean;
@@ -38,8 +39,22 @@ const navGroupStyle = {
     alignItems: 'center'
 }
 
+
+
+
+
 export default function Header({darkMode, handleThemeChange}: Props)
 {
+    /** Lession 75 */
+    /** From useStoreContext I want to use 'basket' */
+    const {basket} = useStoreContext();
+
+    /** in the reduce, I'm passing in callback 'sum' that will hold value summerad value, and item, and then i call item.quantity. 
+     * this '0' is the starting value for the sum, and it is zero.
+    */
+    const itemCount = basket?.items.reduce((sum, item) => sum + item.quantity, 0);
+    console.log(`Items in basket: ${itemCount}`)
+
     return (
         /** sx is a propery and we're giving margin-botom (spacing) 4 */
         <AppBar position='static' sx={{mb: 4}}>
@@ -73,8 +88,8 @@ export default function Header({darkMode, handleThemeChange}: Props)
 
                 {/* This is the third element group on the tack bar. 'Box' is a way of grouping elements. */}
                 <Box sx={navGroupStyle}>
-                    <IconButton size='large' sx={{color: 'inherit'}}>
-                        <Badge badgeContent={4} color='secondary'>
+                    <IconButton size='large' component={Link} to='/basket' sx={{color: 'inherit'}}>
+                        <Badge badgeContent={itemCount} color='secondary'>
                             <ShoppingCart />
                         </Badge>
                     </IconButton>
