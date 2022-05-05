@@ -1,12 +1,17 @@
 import { LoadingButton } from "@mui/lab";
 import { Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import agent from "../../app/api/agent";
 import { useStoreContext } from "../../app/context/StoreContext";
 import NotFoundError from "../../app/errors/NotFoundError";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Product } from "../../app/models/products";
+import { useAppSelector } from "../../app/store/configureStore";
+import { addBasketItemAsync, removeBasketItemAsync, setBasket } from "../basket/basketSlice";
+import { fetchProductAsync, productSelectors } from "./catalogSlice";
+//import { removeItem, setBasket } from "../basket/basketSlice";
 
 
 
@@ -16,21 +21,40 @@ export default function ProductDetails(){
     const {id} = useParams<{id: string}>();
 
     /** Get basket from Context */
-    const {basket, setBasket, removeItem} = useStoreContext();
+    //const {basket, setBasket, removeItem} = useStoreContext();
+
+    // Give me access to the basket.
+    const {basket, status} = useAppSelector(state => state.basket);
+
+    // Status from the Catalog.
+    // OBS a can rename this status only in this file. use ': new_name'
+    // is I want to access status in catalog, I would use 'new_name' instead of status.
+    const {status: productStatus} = useAppSelector(state => state.catalog)
+
+    // give me the access to the function that are located in basketSlice file.
+    const dispatch = useDispatch();
     
     /** I need somewhere to store the single product that comes from API endpoint. */
     /** Here I'm saying that the type vill be Product (if exist) OR null (if it not exist). Initial value is null. */
-    const [product, setProduct] = useState<Product | null>(null);
+    // OLD
+    //const [product, setProduct] = useState<Product | null>(null);
+
+
+    // This line is going to go and get product based on Id from 'state' and not from API
+    // so it will not send API call and instead get it from 'local storage'.
+    const product = useAppSelector(state => productSelectors.selectById(state, id));
 
 
     /** this 'loading' will be set to true when the component has been initialized */
-    const [loading, setLoading] = useState(true);
+    // ODL
+    //const [loading, setLoading] = useState(true);
 
     /** This quantity will be used to show the quantity of that particular product in the basket. Set it to 0 by default. */
+    // It is the value inside '<TextField>'
     const [quantity, setQuantity] = useState(0);
 
     /** This submitting will be used as loading. The first one loading I use when fetching product from API. Set it to false by default. */
-    const [submitting, setSubbmiting] = useState(false);
+    //const [submitting, setSubbmiting] = useState(false);
 
 
     /** Try to find that item in the basket. If the item is not in the basket it will return 'undefined'.*/
@@ -45,8 +69,10 @@ export default function ProductDetails(){
         console.log(item?.name);
         // check if item exist
         if (item){
+            console.log('Item.ProductId: ' + item.productId)
+            console.log('Id: ' + id)
             agent.Basket.addItem(item.productId, 1)
-                .then(basket => setBasket(basket))
+                .then(basket => dispatch(setBasket(basket)))
         }
     }
 
@@ -59,12 +85,13 @@ export default function ProductDetails(){
             setQuantity(item.quantity);
         }
 
-        agent.Catalog.details(parseInt(id))
-            .then(response => setProduct(response))
-            .catch(error => console.log(error))
-            .finally(() => setLoading(false));
+        // check if I dont have a product. Go and get it from the API
+        if(!product) {
+            dispatch(fetchProductAsync(parseInt(id)));
+        }
+
         /** If you forget to add dependency the item will not update the quantity in the text field */
-    }, [id, item])
+    }, [id, item, dispatch, product])
 
 
 
@@ -95,7 +122,8 @@ export default function ProductDetails(){
     function handleUpdateCart(){
         
         // Turn on the loading flag
-        setSubbmiting(true);
+        //setSubbmiting(true);
+
 
         // Check if I have an item, and see if the quantity in my local state (text field) is greater than item.quantity thats in the basket.
         // That mean that I'm adding to the basket.
@@ -106,26 +134,29 @@ export default function ProductDetails(){
             // Create new variabel that is going to hols new updaterd quantity
             const updatedQuantity = item ? quantity - item.quantity : quantity;
 
+            dispatch(addBasketItemAsync({productId: product?.id!, quantity: updatedQuantity}))
             // Call the API agent to update the basket.
-            agent.Basket.addItem(product?.id!, updatedQuantity)
-                .then(basket => setBasket(basket))
-                .catch(error => console.log(error))
-                .finally(() => setSubbmiting(false));
+            //agent.Basket.addItem(product?.id!, updatedQuantity)
+            //    .then(basket => dispatch(setBasket(basket)))
+            //    .catch(error => console.log(error))
+            //    .finally(() => setSubbmiting(false));
         }
 
 
         /** if the item exist or the quantity is less then the item.quantity. That means that I'm removing from the item.  */
         else{
         
-            const updatedQuan = item.quantity - quantity;
+            const updatedQuantity = item.quantity - quantity;
 
             //setStatus({loading: true, name});
 
+            dispatch(removeBasketItemAsync({productId: product?.id!, quantity: updatedQuantity}))
             // the other parameter was optional, I change it to not be optional. I dont know it here
-            agent.Basket.removeItem(product?.id!, updatedQuan)
-                .then(() => removeItem(product?.id!, updatedQuan))
-                .catch(error => console.log(error))
-                .finally(() => setSubbmiting(false))
+            //agent.Basket.removeItem(product?.id!, updatedQuan)
+                                                // ':' not '=' because this is an object.
+            //  .then(() => dispatch(removeBasketItemAsync({productId: product?.id!, quantity: updatedQuan})))
+            //    .catch(error => console.log(error))
+            //    .finally(() => setSubbmiting(false))
 
             
 /*             const updatedQuantity = item.quantity - quantity;
@@ -150,7 +181,7 @@ export default function ProductDetails(){
     /** COUPLE OF CONDITIONS BEFORE I RETURN A PROJECT */
 
     /** Check for loading status (If the component has been initialized) */
-    if (loading) return <LoadingComponent message="Loading product..." />
+    if (productStatus.includes('pending')) return <LoadingComponent message="Loading product..." />
 
     /** If there is no product return message to user. */
 /*     if (!product) return <h3>Product not found...</h3> */
@@ -214,7 +245,8 @@ export default function ProductDetails(){
                         <LoadingButton
                             // disable the button if the  quantity remain the same. Or if the item is not in the basket and quantity is equal 0. 
                             disabled={item?.quantity === quantity || !item && quantity === 0}
-                            loading={submitting}
+                            //loading={submitting}
+                            loading={status.includes('pending')} 
                             onClick={handleUpdateCart}
                             sx={{height: '55px'}}
                             color='primary'

@@ -111,4 +111,9 @@ npm install react-toastify
 # To install material UI Lab
 npm install @mui/lab
 
+# To install Redux and React-Redux
+npm install redux react-redux
+
+# To install Redux Toolkit
+npm install @reduxjs/toolkit
 

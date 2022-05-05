@@ -65,7 +65,7 @@ namespace API.Controllers
             // Check if item is null. If so return NotFound.
             if(product == null)
             {
-                return NotFound();
+                return BadRequest(new ProblemDetails{Title= "Product Not Found"});
             }
 
             // att the item to the basket.Y

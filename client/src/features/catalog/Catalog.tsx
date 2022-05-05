@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import agent from "../../app/api/agent";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Product } from "../../app/models/products";
+import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
+import { fetchProductsAsync, productSelectors } from "./catalogSlice";
 import ProductList from "./ProductList";
 
 /** Create interface that represent all 'in' prameters. It's like a contract that this parameters are required. */
@@ -17,24 +20,34 @@ import ProductList from "./ProductList";
 /** props which represnt 'in' arguements is of type 'Props' and has one property and one function. */
 export default function Catalog() {
 
-  // this will allow me to keep list of products in the memory.
-    const [products, setProducts] = useState<Product[]>([]);
+  // OLD code => this will allow me to keep list of products in the memory.
+    //const [products, setProducts] = useState<Product[]>([]);
+
+    // Now I have list of all products in this variable.
+    const products = useAppSelector(productSelectors.selectAll);
+
+    // I also need access to dispatch.
+    const dispatch = useAppDispatch();
+
+    // I need state as well
+    const {productsLoaded, status} = useAppSelector(state => state.catalog);
 
     /** Variabel for loading component */
     const [loading, setLoading] = useState(true);
 
 
     useEffect(() => {
-        agent.Catalog.list()
-            /** If products are loaded it will show then immediatelly */
-            .then(products => setProducts(products))
-            /** It will catch error and log it */
-            .catch(error => console.log(error))
-            /** as the last thing it will set loading to false and remove that component from */
-            .finally(() => setLoading(false))
-    }, [])
+        
+        // check if products are not loaded. If so fetch them from the API
+        if(!productsLoaded){
+            dispatch(fetchProductsAsync())
+        }
 
-    if(loading){
+        // I have to use 'productsLoaded' as dependency
+    }, [productsLoaded, dispatch])
+
+    // check if I'm loading  
+    if(status.includes('pending')){
         return <LoadingComponent message="Loading products..."/>
     }
 

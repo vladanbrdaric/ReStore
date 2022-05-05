@@ -2,7 +2,9 @@ import { DarkMode, ShoppingCart } from "@mui/icons-material";
 import { AppBar, Badge, IconButton, List, ListItem, Switch, Toolbar, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { Link, NavLink } from "react-router-dom";
+import { basketSlice } from "../../features/basket/basketSlice";
 import { useStoreContext } from "../context/StoreContext";
+import { useAppSelector } from "../store/configureStore";
 
 interface Props{
     darkMode: boolean;
@@ -45,9 +47,9 @@ const navGroupStyle = {
 
 export default function Header({darkMode, handleThemeChange}: Props)
 {
-    /** Lession 75 */
-    /** From useStoreContext I want to use 'basket' */
-    const {basket} = useStoreContext();
+    // state.basket is the basket in 'configureStore.ts' file (basket: basketSlice.reducer)
+    // So I'm interested in basketSlice. 
+    const {basket} = useAppSelector(state => state.basket);
 
     /** in the reduce, I'm passing in callback 'sum' that will hold value summerad value, and item, and then i call item.quantity. 
      * this '0' is the starting value for the sum, and it is zero.

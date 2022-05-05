@@ -1,13 +1,16 @@
-import { TableContainer, Paper, Table, TableBody, TableRow, TableCell, Typography } from "@mui/material";
-import { useState } from "react";
+import { TableContainer, Paper, Table, TableBody, TableRow, TableCell } from "@mui/material";
 import { useStoreContext } from "../../app/context/StoreContext";
+import { useAppSelector } from "../../app/store/configureStore";
 import { formatPrice } from "../../app/util/util";
 
 export default function BasketSummary() {
 
     /** Lession 75 */
     /** From useStoreContext I want to use 'basket' */
-    const {basket} = useStoreContext();
+    // OLD ONE
+    //const {basket} = useStoreContext();
+
+    const {basket} = useAppSelector(state => state.basket);
 
     // get basket, count subtotal, parse it in a function to get right format and convert it to a number.
     let subtotal = Number(formatPrice(basket?.items.reduce((sum, item) => sum + item.price * item.quantity, 0)));

@@ -19,10 +19,16 @@ import { getCookie } from "../util/util";
 import agent from "../api/agent";
 import LoadingComponent from "./LoadingComponent";
 import CheckoutPage from "../../features/checkout/CheckoutPage";
+import { basketSlice, setBasket } from "../../features/basket/basketSlice";
+import { useAppDispatch } from "../store/configureStore";
 
 function App() {
   /** I have to specify what I'm interested of from useStoreContext */
-  const {setBasket} = useStoreContext();
+  // The old one using StoreContext;
+  //const {setBasket} = useStoreContext();
+
+  // useAppDispatch comes from 'configureStore.ts' file.
+  const dispatch = useAppDispatch(); 
 
   /** I'm getting basket from API which meands there will be some loading. */
   const [loading, setLoading] = useState(true);
@@ -36,8 +42,8 @@ function App() {
 
       /** fetch basket from API */
       agent.Basket.get()
-        /** set basket using 'context' */  
-        .then(basket => setBasket(basket))
+        /** So when the basket comes from API i store it in the redux toolkit 'store' */  
+        .then(basket => dispatch(setBasket(basket)))
         .catch(error => console.log(error))
         .finally(() => setLoading(false));
     }
@@ -46,7 +52,7 @@ function App() {
       setLoading(false);
     }
     /** setBasket is a dependency that I need. */
-  }, [setBasket])
+  },[dispatch])
 
   const [darkMode, setDarkMode] = useState(false);
   const paletteType = darkMode ? 'dark' : 'light';

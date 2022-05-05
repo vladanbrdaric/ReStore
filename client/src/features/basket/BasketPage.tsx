@@ -1,13 +1,14 @@
-import { Add, Delete, ProductionQuantityLimits, Remove } from "@mui/icons-material";
-import { Box, Button, Grid, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { Add, Delete, Remove } from "@mui/icons-material";
+import { Box, Button, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import { useState } from "react";
-import { isTemplateTail } from "typescript";
 import { useStoreContext } from "../../app/context/StoreContext";
 import agent from "../../app/api/agent";
 import { LoadingButton } from "@mui/lab";
-import { loadavg } from "os";
 import BasketSummary from "./BasketSummary";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "../../app/store/configureStore";
+import { useDispatch } from "react-redux";
+import { addBasketItemAsync, removeBasketItemAsync, setBasket } from "./basketSlice";
 
 export default function BasketPage(){
     
@@ -43,20 +44,24 @@ export default function BasketPage(){
 
     /** Lession: 75 */
     /** From useStoreContext I want to use 'basket' */
-    const {basket, setBasket, removeItem} = useStoreContext();
-    
+    //const {basket, setBasket, removeItem} = useStoreContext();
+
+    // Redux Toolkit
+    const {status, basket} = useAppSelector(state => state.basket)
+    const dispatch = useDispatch();
+
     /** This modification is for the buttons to be able to recognize which button has being pressed. */
-    const [status, setStatus] = useState({
-        loading: false,
-        name: ''
-    });
+//    const [status, setStatus] = useState({
+//        loading: false,
+//        name: ''
+//    });
 
     /** If the basket is null */
     if(basket === null){
         <Typography variant="h3">Your basket is empty</Typography>
     }
 
-    console.log(basket?.items.length)
+
 
     // My code to hide empty tables when no produce has been added to the basket.
     if(basket && basket.items.length === 0){
@@ -65,21 +70,21 @@ export default function BasketPage(){
 
 
     /** Now, It will only show loading sing with parsed button name that I pass in. */
-    function handleAddItem(productId: number, name: string){
-        setStatus({loading: true, name});
-        agent.Basket.addItem(productId)
-            .then(basket => setBasket(basket))
-            .catch(error => console.log(error))
-            .finally(() => setStatus({loading: false, name: ''}))
-    }
+//    function handleAddItem(productId: number, name: string){
+//        setStatus({loading: true, name});
+//        agent.Basket.addItem(productId)
+//            .then(basket => dispatch(setBasket(basket)))
+//            .catch(error => console.log(error))
+//            .finally(() => setStatus({loading: false, name: ''}))
+//    }
 
-    function handleRemoveItem(productId: number, quantity: number, name: string){
-        setStatus({loading: true, name});
-        agent.Basket.removeItem(productId, quantity)
-            .then(() => removeItem(productId, quantity))    
-            .catch(error => console.log(error))
-            .finally(() => setStatus({loading: false, name: ''}))
-    }
+//    function handleRemoveItem(productId: number, quantity: number, name: string){
+//        setStatus({loading: true, name});
+//        agent.Basket.removeItem(productId, quantity)
+//            .then(() => dispatch(removeItem({productId, quantity})))    
+//            .catch(error => console.log(error))
+//           .finally(() => setStatus({loading: false, name: ''}))
+//    }
 
     return(
         <>  
@@ -108,30 +113,37 @@ export default function BasketPage(){
                                 </TableCell>
                                 <TableCell align="right">${(item.price / 100).toFixed(2)}</TableCell>
                                 <TableCell align="center">
-                                    <LoadingButton 
-                                        loading={status.loading && status.name === 'rem' + item.productId} 
+                                    <LoadingButton
+                                        disabled={item.quantity < 1}
+                                        loading={status === 'pendingRemoveItem' + 'rem' + item.productId}
+                                        //loading={status.loading && status.name === 'rem' + item.productId} 
                                         color='error' 
-                                        onClick={() => handleRemoveItem(item.productId, 1, 'rem' + item.productId)}>
+                                        //onClick={() => handleRemoveItem(item.productId, 1, 'rem' + item.productId)}>
+                                        onClick={() => dispatch(removeBasketItemAsync({productId: item.productId, quantity: 1, name: 'rem'}))}>
                                         <Remove />
                                     </LoadingButton>
 
                                     {item.quantity}
 
                                     <LoadingButton 
-                                        loading={status.loading && status.name === 'add' + item.productId} 
+                                        //loading={status.loading && status.name === 'add' + item.productId} 
+                                        loading={status === 'pendingAddItem' + item.productId}
                                         color='secondary' 
-                                        onClick={() => handleAddItem(item.productId, 'add' + item.productId)}>
-                                    <Add />
+                                        onClick={() => dispatch(addBasketItemAsync({productId: item.productId, quantity: 1}))}>
+                                        <Add />
                                     </LoadingButton>
                                 </TableCell>
                                 <TableCell align="right">${((item.price / 100) * item.quantity).toFixed(2)}</TableCell>
                                 <TableCell align="right">
                                     <LoadingButton
-                                        loading={status.loading && status.name === 'del' + item.productId} 
+                                        //loading={status.loading && status.name === 'del' + item.productId} 
+                                        loading={status === 'pendingRemoveItem' + 'del' + item.productId}
                                         color="error" 
-                                        onClick={() => handleRemoveItem(item.productId, item.quantity, 'del' + item.productId)}>
+                                        onClick={() => dispatch(removeBasketItemAsync({productId: item.productId, quantity: item.quantity, name: 'del'}))}>
+{/*                                         onClick={() => handleRemoveItem(item.productId, item.quantity, 'del' + item.productId)} */}
                                         <Delete />
                                     </LoadingButton>
+
                                 </TableCell>
                             </TableRow>
                         ))}
