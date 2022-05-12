@@ -85,7 +85,7 @@ function App() {
       <Header darkMode={darkMode} handleThemeChange={handleThemeChange}/> 
       <Route exact path='/' component={HomePage} />
       <Route path={'/(.+)'} render={() => (
-        <Container sx={{ mt: 4 }}>
+        <Container sx={{ mt: 6 }}>
           <Switch>
             <Route exact path="/catalog" component={Catalog} />
             <Route path="/catalog/:id" component={ProductDetails} />

@@ -1,6 +1,8 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { toast } from "react-toastify";
 import { history } from "../..";
+import { PaginationResponse } from "../models/pagination";
+import { ProductParams } from "../models/products";
 
 /** Base url to my API */
 axios.defaults.baseURL = "http://localhost:5000/api/";
@@ -28,6 +30,19 @@ axios.interceptors.response.use(async response => {
     /** Call sleep method and pause loading of new component for 0.5 second. */
     await sleep();
 
+    // save pagination from headers in variable 'pagination'
+    const pagination = response.headers['pagination'];
+
+    // Check if there is something in the header in 'pagination'
+    if(pagination){
+        
+        // override response to store both Product(s) and MetaData. JSON parse will deserialize json object to MetaData type.
+        response.data = new PaginationResponse(response.data, JSON.parse(pagination))
+
+        // return response at the end
+        return response
+    }
+
     /** If the response code is in range 200 it will return the response */
     return response;
 
@@ -38,6 +53,7 @@ axios.interceptors.response.use(async response => {
     /** from error.response, I'm interested in 'data' and 'status' fields. */
     /** '!' at the end of sentence is to override TypeScripts feature named TypeSafety and remove that error for 'data' and 'status'. */
     const {data, status} = error.response!;
+
     switch (status) {
 
 
@@ -81,9 +97,11 @@ axios.interceptors.response.use(async response => {
 
 /** HelperMethods: This is an object that contains different type of request in form of functions */
 
+// Available API requests for my application
 const requests = {
-    /** it will send axios.get request and forward  */
-    get: (url: string) => axios.get(url).then(responseBody), 
+
+    // beside URL, I can parse parameters as well. It is optional.
+    get: (url: string, params?: URLSearchParams) => axios.get(url, {params}).then(responseBody), 
     post: (url: string, body: {}) => axios.post(url, body).then(responseBody), 
     update: (url: string, body: {}) => axios.put(url).then(responseBody), 
     delete: (url: string) => axios.delete(url).then(responseBody), 
@@ -92,8 +110,9 @@ const requests = {
 /** Here will be centralised all request that has with Catalog component to do. */
 const Catalog = {
     /** I will get back list. I'm not parsing any paramater url is basUrl+'products' */
-    list: () => requests.get('products'),
-    details: (id: number) => requests.get(`products/${id}`)
+    list: (params: URLSearchParams) => requests.get('products', params),
+    details: (id: number) => requests.get(`products/${id}`),
+    fetchFilters: () => requests.get('products/filters')
 }
 
 
