@@ -1,6 +1,6 @@
 import { ThemeProvider } from "@emotion/react";
 import { Container, createTheme, CssBaseline } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import AboutPage from "../../features/about/AboutPage";
@@ -19,8 +19,12 @@ import { getCookie } from "../util/util";
 import agent from "../api/agent";
 import LoadingComponent from "./LoadingComponent";
 import CheckoutPage from "../../features/checkout/CheckoutPage";
-import { basketSlice, setBasket } from "../../features/basket/basketSlice";
+import { basketSlice, fetchBasketAsync, setBasket } from "../../features/basket/basketSlice";
 import { useAppDispatch } from "../store/configureStore";
+import Login from "../../features/account/Login";
+import Register from "../../features/account/Register";
+import { fetchCurrentUser } from "../../features/account/accountSlice";
+import PrivateRoute from "./PrivateRoute";
 
 function App() {
   /** I have to specify what I'm interested of from useStoreContext */
@@ -33,26 +37,31 @@ function App() {
   /** I'm getting basket from API which meands there will be some loading. */
   const [loading, setLoading] = useState(true);
 
+  // Create function to initialize the app. Make it async as well.
+  // It have to be Redux callback function.
+  const initApp = useCallback(async () => {
+    try {
+
+      // So when the page reloads or the app initialize do next:
+
+      // try to fetch loged in user.
+      await dispatch(fetchCurrentUser());
+
+      // fetch basket (for the speficic buyerId.) 
+      await dispatch(fetchBasketAsync());
+    } catch (error) {
+      console.log(error)
+    }
+  }, [dispatch])
+
   /** In order to go and get the basket when my application loads, use 'useEffect'. */
   useEffect(() => {
-    /** make sure 'buyerId' match whatever you call your cookie. */
-    const buyerId = getCookie('buyerId')
-    /** If I have buyerId cookie */
-    if(buyerId){
+    
+    // call async function initApp and set loading to false.
+    initApp().then(() => setLoading(false));
 
-      /** fetch basket from API */
-      agent.Basket.get()
-        /** So when the basket comes from API i store it in the redux toolkit 'store' */  
-        .then(basket => dispatch(setBasket(basket)))
-        .catch(error => console.log(error))
-        .finally(() => setLoading(false));
-    }
-    /** If I dont have buyerId from cookie. (Incognito window) */
-    else{
-      setLoading(false);
-    }
     /** setBasket is a dependency that I need. */
-  },[dispatch])
+  },[initApp])
 
   const [darkMode, setDarkMode] = useState(false);
   const paletteType = darkMode ? 'dark' : 'light';
@@ -92,7 +101,10 @@ function App() {
             <Route path="/about" component={AboutPage} />
             <Route path="/contact" component={ContactPage} />    
             <Route path="/basket" component={BasketPage} />    
-            <Route path="/checkout" component={CheckoutPage} />    
+            {/* <Route path="/checkout" component={CheckoutPage} /> -> OLD ONE - NOT PROTECTED. **/}     
+            <PrivateRoute path="/checkout" component={CheckoutPage} />    
+            <Route path="/login" component={Login} />    
+            <Route path="/register" component={Register} />    
             {/** Look at agent.tsx file for the 500 server error. */}
             <Route path="/server-error" component={ServerError} />    
             

@@ -1,8 +1,12 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
+import { request } from "http";
 import { toast } from "react-toastify";
 import { history } from "../..";
+import { LoginUser } from "../models/loginUser";
 import { PaginationResponse } from "../models/pagination";
 import { ProductParams } from "../models/products";
+import { RegisterUser } from "../models/registerUser";
+import { store } from "../store/configureStore";
 
 /** Base url to my API */
 axios.defaults.baseURL = "http://localhost:5000/api/";
@@ -22,6 +26,28 @@ const responseBody = (response: AxiosResponse) => response.data;
     return response.data;
 } */
 
+// This one have with user to do.
+// for every request where I have a token, then I'm going to use that token and send it up with the request.
+// If I don't have a token, then I'm not going to do that.
+axios.interceptors.request.use(config => {
+    
+    // I can use Redux 'store' directly here and use any of slices I created. 
+    // I try to get token from state. 
+    // (In order to use 'user' object from 'state' I have to make sure that if I have a token in local storage,
+    // I actually set it inside 'state' before I'm able to use this. Look for the setUser in accountSlice and dispatch in async method in currentUser)
+    const token = store.getState().account.user?.token;
+
+    // check to see if I have a token
+    // If I have a token, I will put 'Bearer' and the token in the authorization header.
+    if(token) { 
+    
+        // If I have a token, I will put 'Bearer' and the token in the authorization header.
+        config.headers!.Authorization = `Bearer ${token}`;
+    }
+
+    // return config at the end.
+    return config;
+})
 
 /** This interceptor will chech for the response code */
 
@@ -140,11 +166,26 @@ const Basket = {
 
 }
 
+/** Centralized request for the Identity components*/
+const Account = {
+    
+    // Register
+    register: (userInformation : any) => requests.post('account/register', userInformation),
+
+    // Login
+    login: (credentials : any) => requests.post('account/login', credentials),
+
+    // Get current user
+    currentUser: () => requests.get('account/currentUser')
+}
+
+
 /** I think that I making my objects public so I can access them outside the funciion */
 const agent = {
     Catalog,
     TestErrors,
-    Basket
+    Basket,
+    Account
 }
 
 

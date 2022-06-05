@@ -117,3 +117,13 @@ npm install redux react-redux
 # To install Redux Toolkit
 npm install @reduxjs/toolkit
 
+# To install React-Hook-Form
+npm install react-hook-form
+
+
+# To find a process thats running on provided port
+netstat -ano | findstr :3000
+[output: TCP    0.0.0.0:3000           0.0.0.0:0              LISTENING       22612]
+
+# To kill a process 
+taskkill /PID 22612 /F

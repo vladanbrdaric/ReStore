@@ -1,19 +1,57 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using API.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace API.Data
 {
     public static class DbInitializer
     {
-        public static void Initialize(StoreContext context)
+        // This class will take care of the test data. If I delete someting from the database it will recreate that data again.
+        public static async Task Initialize(StoreContext context, UserManager<User> userManager)
         {
-            // with "context." I basically access the database.
+
+            // Check if there is no users in the database. If there are not. Let's craete a couple of users.
+            if(!userManager.Users.Any())
+            {
+                // Create regular user
+                var user = new User
+                {
+                    UserName = "Bob",
+                    Email = "bob@test.com"
+                };
+
+                // Store the user to the database.
+                await userManager.CreateAsync(user, "Pa$$w0rd");
+
+                // Give the user a role as a member.
+                await userManager.AddToRoleAsync(user, "Member");
+
+                // Create admin
+                var admin = new User
+                {
+                    UserName = "Admin",
+                    Email = "admin@test.com"
+                };
+
+                // Store the user to the database.
+                await userManager.CreateAsync(admin, "Pa$$w0rd");
+
+                // Give the user a role as a member.
+                await userManager.AddToRolesAsync(admin, new[] { "Member", "Admin" });
+            }
+
+
+
+
+
 
             // check if there is products in database, if so do basically nothing.
             if(context.Products.Any()) return;
 
 
+            
             // othervise create new list of products and add them to the database.
             var products = new List<Product>
             {

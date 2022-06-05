@@ -34,6 +34,7 @@ function getAxiosParams(productParams: ProductParams){
         params.append('searchTerm', productParams.searchTerm);
     }
 
+    // add brands to query only if the brand name is a string greather then 0 characters. 
     if(productParams.brands.length > 0){
         params.append('brands', productParams.brands.toString());
     }

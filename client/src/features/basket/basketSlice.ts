@@ -1,8 +1,10 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { Cookie } from "@mui/icons-material";
+import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 import { buildQueries } from "@testing-library/react";
 import { stat } from "fs";
 import agent from "../../app/api/agent";
 import { Basket } from "../../app/models/basket";
+import { getCookie } from "../../app/util/util";
 
 interface BasketState {
     /** first variable is going to be of type Basket or null */
@@ -20,6 +22,33 @@ const initialState: BasketState = {
     // Initial value is idle - neaktivan
     status: 'idle'
 }
+
+// Moved code from App.tsx. All agent call have to be here.
+export const fetchBasketAsync = createAsyncThunk<Basket>(
+    'basket/fetchBasketAsync',
+    async (_, thunkAPI) => {
+        try {
+
+            /** fetch basket from API */
+            return await agent.Basket.get()
+
+        } catch (error: any) {
+            return thunkAPI.rejectWithValue({error: error.data})
+        }
+    },
+    // In this case the condition is if there is a cookie with the name 'buyerId'.
+    // So the API call will be made only is there IS a cookie with the buyerId.
+    {
+        condition: () => {
+            
+            if(!getCookie('buyerId')) {
+
+                return false;
+            }
+        }
+    }
+
+)
 
 // Create an async method. Return type is 'Basket' and I'm providing 'productId' and 'quantity'.
 // OBS: 'quantity' is optional argument with default value of 1.
@@ -57,38 +86,12 @@ export const basketSlice = createSlice({
         setBasket: (state, action) => {
             // this 'basket' comes from interface 'BasketState'
             state.basket = action.payload
+        },
+
+        // add a method to clear the basket.
+        clearBasket: (state) => {
+            state.basket = null;
         }
-
-        // I moved all code down below in extraReducer for removeItemAsync
-        //removeItem: (state, action) => {
-            // Payload is actually values that is going to be passed in the function.
-            // when passing in arguemnts in this function use {productId, quantity} because
-            // the function takes in only one argument.
-            
-            //const {productId, quantity} = action.payload
-
-            // find itemIndex, if not fount return number or undefined. this 'productId' I'm passing in.
-            
-            
-            //const itemIndex = state.basket?.items.findIndex(i => i.productId === productId); 
-
-            // Check if itemIndex if -1 or undefined. If so don't do anything because the item has not been found.
-            
-            //if(itemIndex === -1 || itemIndex === undefined){
-                //return;
-    //}
-
-            // If it return something other then -1 or undefined then I know that the item is in the basket and I can remove the quantity
-            // I already check that the itemIndex is not undefined and I put '!' instead of '?'
-            
-            //state.basket!.items[itemIndex].quantity -= quantity;
-            
-            // Check remain quantity
-            
-            //if(state.basket?.items[itemIndex].quantity === 0){
-                
-                //state.basket.items.splice(itemIndex, 1);           
-            //}
     },
     // ?? Write a comment.
     extraReducers: (builder => {
@@ -100,17 +103,7 @@ export const basketSlice = createSlice({
             state.status = 'pendingAddItem' + action.meta.arg.productId;
         });
 
-        // When the request is successed, put the payload which is of type 'Basket' in state.Basket. Set status back to idle.
-        builder.addCase(addBasketItemAsync.fulfilled, (state, action) => {
-            state.basket = action.payload;
-            state.status = 'idle';
-        });
 
-        // If there is any issue, set the status to idle.
-        builder.addCase(addBasketItemAsync.rejected, (state, action) => {
-            console.log(action.payload);
-            state.status = 'idle';
-        });
 
 
         // Builder for removing item from basket
@@ -138,12 +131,24 @@ export const basketSlice = createSlice({
         builder.addCase(removeBasketItemAsync.rejected, (state, action) => {
             state.status = 'idle';
             console.log(action);
-        })
+        });
+
+        // When the request is successed, put the payload which is of type 'Basket' in state.Basket. Set status back to idle.
+        builder.addMatcher(isAnyOf(addBasketItemAsync.fulfilled, fetchBasketAsync.fulfilled), (state, action) => {
+            state.basket = action.payload;
+            state.status = 'idle';
+        });
+
+        // If there is any issue, set the status to idle.
+        builder.addMatcher(isAnyOf(addBasketItemAsync.rejected, fetchBasketAsync.rejected) ,(state, action) => {
+            console.log(action.payload);
+            state.status = 'idle';
+        });
     })
 })
 
 // Export actions
-export const {setBasket} = basketSlice.actions;
+export const {setBasket, clearBasket} = basketSlice.actions;
 
 /* function async(arg0: { productId: any; quantity: any; }): import("@reduxjs/toolkit").AsyncThunkPayloadCreator<Basket, { productId: number; quantity /** first variable is going to be of type Basket or null : number; }, {}> {
     throw new Error("Function not implemented.");

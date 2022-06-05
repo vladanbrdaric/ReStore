@@ -5,6 +5,7 @@ import { Link, NavLink } from "react-router-dom";
 import { basketSlice } from "../../features/basket/basketSlice";
 import { useStoreContext } from "../context/StoreContext";
 import { useAppSelector } from "../store/configureStore";
+import SignedInMenu from "./SignedInMenu";
 
 interface Props{
     darkMode: boolean;
@@ -51,6 +52,9 @@ export default function Header({darkMode, handleThemeChange}: Props)
     // So I'm interested in basketSlice. 
     const {basket} = useAppSelector(state => state.basket);
 
+    // import user from the accountSlice so that I can show different menu if the user is loged in.
+    const {user} = useAppSelector(state => state.account);
+
     /** in the reduce, I'm passing in callback 'sum' that will hold value summerad value, and item, and then i call item.quantity. 
      * this '0' is the starting value for the sum, and it is zero.
     */
@@ -96,18 +100,26 @@ export default function Header({darkMode, handleThemeChange}: Props)
                         </Badge>
                     </IconButton>
 
-                    <List sx={{display: 'flex'}}>
-                        {rightLinks.map(({title, path}) => (
-                            <ListItem
-                                component={NavLink}
-                                to={path}
-                                key={path}
-                                sx={navStyles}
-                            >
-                                {title.toUpperCase()}
-                            </ListItem>
-                        ))}    
-                    </List>   
+                    {/** If the user is loged in then show this, otherwise show LOGIN and REGISTER buttons  */}
+                    {user ? (
+                        <SignedInMenu />
+                    ) : (
+                        <List sx={{display: 'flex'}}>
+                            {rightLinks.map(({title, path}) => (
+                                <ListItem
+                                    component={NavLink}
+                                    to={path}
+                                    key={path}
+                                    sx={navStyles}
+                                >
+                                    {title.toUpperCase()}
+                                </ListItem>
+                            ))}    
+                        </List>  
+                    )}
+                    
+
+ 
                 </Box>
 
 
